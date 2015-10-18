@@ -1,0 +1,24 @@
+{
+  "name": "konva-js-demo",
+  "version": "0.0.1",
+  "authors": [
+    "dostroll <deostroll@gmail.com>"
+  ],
+  "description": "experiments with konvajs",
+  "keywords": [
+    "konva",
+    "javascript",
+    "animation"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "konva": "~0.9.5"
+  }
+}
