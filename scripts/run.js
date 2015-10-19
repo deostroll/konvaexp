@@ -1,6 +1,6 @@
 function run(el) {
 	var d = computeDimensions(el);
-	console.log(d);
+	
 	var stage = new Konva.Stage({
 		container: el,
 		height: d.canvasHeight,
@@ -12,38 +12,74 @@ function run(el) {
 		y: stage.height()/2
 	};
 
-	console.log(center);
-
-	var layer = new Konva.Layer();
-	var rect = new Konva.Rect({
-		x: center.x,
-		y: center.y,
-		width: 100,
-		height: 100,
-		stroke: 'blue',
-		offset: {
-			x: 50,
-			y: 50
+	var bounds = {
+		center: center,
+		max: {
+			x: stage.getWidth(),
+			y: stage.getHeight()
 		}
+	};
+
+	console.log(bounds);
+	var g = 10; //acceleration due to gravity;
+	var delay = 0; // ms
+	
+	var uniform = function(x) {
+		return x * 100 / 5000;
+	};
+	var layer = new Konva.Layer();	
+	//layer.add(rect);
+	var mousedown = false;
+	var start, end;	
+	//layer.add(rect);
+	stage.on('contentClick', function(e){
+		var pos = stage.getPointerPosition();
+		var circle = new Konva.Circle({
+			x: pos.x,
+			y: pos.y,
+			fill: 'red',
+			radius: 20
+		});
+		var distance = (function(y) {
+			return function(time) {
+				var ts = time/1000;
+				if(g < 0) { return bounds.max.y - 0.5 * ts * ts}
+				return y + 0.5 * ts * ts * g;
+			}
+		})(pos.y);
+		var h = bounds.max.y - pos.y - circle.radius();
+		
+		layer.add(circle).draw();
+		var last;
+		var anim = new Konva.Animation(function(frame) {
+			if(!last) {
+				last = frame.time;
+			}
+			if(frame.time - last > delay) {
+				var y = distance(frame.time);
+				//var y = uniform(frame.time);
+				console.log('y:', y + pos.y, 'max.y:', bounds.max.y);
+				circle.y(y);				
+				if((y + pos.y) > bounds.max.y) {
+					console.log('stop');										
+				}
+				last = frame.time;
+				return;
+			}			
+			return false;
+		}, layer);
+		anim.start();
 	});
-	layer.add(rect);
-	stage.add(layer);
-	var last;
-	var delay = 0;
-	var degree = 3;
-	var anim = new Konva.Animation(function (frame){
-		if(!last) {
-			last = frame.time
-		}
 
-		if((frame.time - last) > delay) {
-			rect.rotate(degree);
-			last = frame.time;
-			return;
-		}
-
-		return false;
-	}, layer);
-
-	anim.start();
+	
+	var line = new Konva.Line({
+		stroke: 'blue',
+		x: stage.getWidth() / 2,
+		y: stage.getHeight() /2,
+		points: [0,-10, 0,10, 0,0, -10,0, 10, 0]
+	});
+	layer.add(line);
+	//console.log(k);
+	stage.add(layer);		
+	
 }
