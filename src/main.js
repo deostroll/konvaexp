@@ -37,18 +37,15 @@ function run(el) {
 		}
 	};
 
-	console.log(bounds);
-	var g = 10; //acceleration due to gravity;
-	var delay = 0; // ms
-	
-	var uniform = function(x) {
-		return x * 100 / 5000;
+	var params = {
+		delay: 1000
 	};
+	
+	var g = 250; //acceleration due to gravity;
+	
+	
 	var layer = new Konva.Layer();	
-	//layer.add(rect);
-	var mousedown = false;
-	var start, end;	
-	//layer.add(rect);
+	
 	stage.on('contentClick', function(e){
 		var pos = stage.getPointerPosition();
 		var circle = new Konva.Circle({
@@ -57,34 +54,69 @@ function run(el) {
 			fill: 'red',
 			radius: 20
 		});
-		var distance = (function(y) {
-			return function(time) {
-				var ts = time/1000;
-				if(g < 0) { return bounds.max.y - 0.5 * ts * ts}
-				return y + 0.5 * ts * ts * g;
-			}
-		})(pos.y);
-		var h = bounds.max.y - pos.y - circle.radius();
-		
+		var h = bounds.max.y - pos.y - circle.radius();		
 		layer.add(circle).draw();
-		var last;
-		var anim = new Konva.Animation(function(frame) {
-			if(!last) {
-				last = frame.time;
-			}
-			if(frame.time - last > delay) {
-				var y = distance(frame.time);
-				//var y = uniform(frame.time);
-				console.log('y:', y + pos.y, 'max.y:', bounds.max.y);
-				circle.y(y);				
-				if((y + pos.y) > bounds.max.y) {
-					console.log('stop');										
+		var last,
+			start,
+			u = 0,
+			distance = function(time) {
+				var ts = time/1000;
+				return u * ts + 0.5 * g * ts *  ts;
+			},
+			lastPos;
+
+		var anim = new Konva.Animation(function(frame){
+			now = getTime();
+			var diff = now - start;
+			if(diff > params.delay) {
+				var y = distance(diff);
+				//debug({state: 'before', u: u, g: g, y: circle.position().y, dist: y});
+				if(u === 0) {					
+					var cl = circle.y() + circle.radius();
+					circle.y(pos.y + y);
+					if(cl >= bounds.max.y) {
+						circle.move({
+							y: bounds.max.y - cl
+						});
+						layer.draw();
+						console.log('reverse');
+						u = Math.sqrt(2 * g * h);
+						g = -g;												
+						anim.stop();
+						setTimeout(function() { 
+							start = getTime();
+							anim.start(); 
+						}, 1000);
+						return false;
+					}
+				}
+				else { // when u < 0
+					var cc = circle.y()
+					cc = cc - y;
+					circle.y(cc);
+					if(cc <= pos.y) {
+						circle.move({
+							y: pos.y - cc
+						});
+						layer.draw();
+						console.log('reverse');
+						u = 0;
+						g = -g;
+						anim.stop();
+						setTimeout(function() { 
+							start = getTime();
+							anim.start(); 
+						});
+						return false;
+					}
 				}
 				last = frame.time;
+				//debug({state: 'after', u: u, g: g, y: circle.position().y});
 				return;
-			}			
+			}
 			return false;
 		}, layer);
+		start = getTime();
 		anim.start();
 	});
 
@@ -96,7 +128,15 @@ function run(el) {
 		points: [0,-10, 0,10, 0,0, -10,0, 10, 0]
 	});
 	layer.add(line);
-	//console.log(k);
+	
 	stage.add(layer);		
 	
+}
+
+function debug(obj) {
+	console.log(JSON.stringify(obj, null, 2));
+}
+
+function getTime() {
+	return new Date().getTime();
 }
