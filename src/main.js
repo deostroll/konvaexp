@@ -38,20 +38,18 @@ function run(el) {
 	};
 
 	var params = {
-		delay: 100
+		delay: 25
 	};
-	
-	var g = 10; //acceleration due to gravity;
-	
 	
 	var layer = new Konva.Layer();	
 	
 	stage.on('contentClick', function(e){
+		var g = 1000; //acceleration due to gravity;
 		var pos = stage.getPointerPosition();
 		var circle = new Konva.Circle({
 			x: pos.x,
 			y: pos.y,
-			fill: 'red',
+			fill: Konva.Util.getRandomColor(),
 			radius: 20
 		});
 		var h = bounds.max.y - pos.y - circle.radius();		
@@ -63,48 +61,53 @@ function run(el) {
 				var ts = time/1000;
 				return u * ts + 0.5 * g * ts *  ts;
 			},
-			lastPos;
+			lastPos,
+			ui = Math.sqrt(2 * g * h),
+			reverse = function() {
+				if(g > 0) {
+					u = ui					
+				}
+				else {
+					u = 0;
+				}
+				g = -g;
+			},
+			T = Math.sqrt(2 * h / g) * 1000;
 
 		var anim = new Konva.Animation(function(frame){
-			if(!start) { start = getTime(); }
+			if(!start) { console.log('time reset'); start = getTime(); }
 			var now = getTime();
 			var diff = now - start;
 
 			if(diff > params.delay) {
 
 				var y = distance(diff);
+				var ypos;
 				//debug({state: 'before', u: u, g: g, y: circle.position().y, dist: y});				
 				if(u === 0) {					
-					var cl = circle.y() + circle.radius();
-					circle.y(pos.y + y);
-					if(cl >= bounds.max.y) {
-						circle.move({
-							y: bounds.max.y - cl
-						});
-						layer.draw();						
-						console.log('reverse u > 0');
-						u = Math.sqrt(2 * g * h);
-						g = -g;												
-						start = null;
-						return false;
-					}
+					ypos = pos.y + y;
+					circle.y(ypos);					
+					debug({ d: 'down', g: g, ypos: ypos, u: u });
 				}
-				else { // when u < 0
-					console.log(diff, y, circle.y());
-					var cc = circle.y()
-					cc = cc - y;
-					circle.y(cc);
-					if(cc <= pos.y) {
+				else { // when u with initial value...
+					ypos = bounds.max.y - y - circle.radius();
+					circle.y(ypos);
+					var cc = circle.y();
+					if(ypos <= pos.y) {						
 						circle.y(pos.y);
-						layer.draw();						
-						console.log('reverse u = 0');
-						u = 0;
-						g = -g;
-						start = null;
-						return false;
 					}
+					debug({ d: 'up', g: g, ypos: ypos, u : u, 'pos.y': pos.y });					
+				}
+				if(diff >= T) {
+					if(g > 0) {
+						circle.y(bounds.max.y - circle.radius());						
+					}
+					else {
+						circle.y(pos.y);
+					}
+					reverse();
+					start = null;
 				}				
-				
 				return;
 			}
 			return false;
@@ -127,7 +130,7 @@ function run(el) {
 }
 
 function debug(obj) {
-	console.log(JSON.stringify(obj, null, 2));
+	//console.log(JSON.stringify(obj, null, 2));
 }
 
 function getTime() {
