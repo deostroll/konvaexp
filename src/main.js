@@ -38,10 +38,10 @@ function run(el) {
 	};
 
 	var params = {
-		delay: 1000
+		delay: 100
 	};
 	
-	var g = 250; //acceleration due to gravity;
+	var g = 10; //acceleration due to gravity;
 	
 	
 	var layer = new Konva.Layer();	
@@ -66,11 +66,14 @@ function run(el) {
 			lastPos;
 
 		var anim = new Konva.Animation(function(frame){
-			now = getTime();
+			if(!start) { start = getTime(); }
+			var now = getTime();
 			var diff = now - start;
+
 			if(diff > params.delay) {
+
 				var y = distance(diff);
-				//debug({state: 'before', u: u, g: g, y: circle.position().y, dist: y});
+				//debug({state: 'before', u: u, g: g, y: circle.position().y, dist: y});				
 				if(u === 0) {					
 					var cl = circle.y() + circle.radius();
 					circle.y(pos.y + y);
@@ -78,40 +81,30 @@ function run(el) {
 						circle.move({
 							y: bounds.max.y - cl
 						});
-						layer.draw();
-						console.log('reverse');
+						layer.draw();						
+						console.log('reverse u > 0');
 						u = Math.sqrt(2 * g * h);
 						g = -g;												
-						anim.stop();
-						setTimeout(function() { 
-							start = getTime();
-							anim.start(); 
-						}, 1000);
+						start = null;
 						return false;
 					}
 				}
 				else { // when u < 0
+					console.log(diff, y, circle.y());
 					var cc = circle.y()
 					cc = cc - y;
 					circle.y(cc);
 					if(cc <= pos.y) {
-						circle.move({
-							y: pos.y - cc
-						});
-						layer.draw();
-						console.log('reverse');
+						circle.y(pos.y);
+						layer.draw();						
+						console.log('reverse u = 0');
 						u = 0;
 						g = -g;
-						anim.stop();
-						setTimeout(function() { 
-							start = getTime();
-							anim.start(); 
-						});
+						start = null;
 						return false;
 					}
-				}
-				last = frame.time;
-				//debug({state: 'after', u: u, g: g, y: circle.position().y});
+				}				
+				
 				return;
 			}
 			return false;

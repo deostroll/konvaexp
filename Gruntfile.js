@@ -27,6 +27,7 @@ module.exports = function(grunt) {
       },
       livereload: {
         options: {
+          open: true,
           middleware: function(connect) {
             var serveStatic = require('./node_modules/grunt-contrib-connect/node_modules/serve-static');
             var app = connect();
