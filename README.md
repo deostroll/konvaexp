@@ -19,3 +19,6 @@ Setup
 
 The default grunt task should run a localhost server @ port 3000. Keep grunt running. Make changes in ```scripts/run.js``` file and save for the live-reload functionality.
 
+
+
+[![Join the chat at https://gitter.im/deostroll/konvaexp](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/deostroll/konvaexp?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
